@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mancave Vault - Premium Collection Manager</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕹️</text></svg>">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #0b0813;
+            --bg-gradient: radial-gradient(circle at top right, #1a103c 0%, #07050d 100%);
+            --card-bg: rgba(26, 21, 44, 0.45);
+            --card-bg-hover: rgba(36, 30, 60, 0.65);
+            --card-border: rgba(255, 255, 255, 0.06);
+            --card-border-hover: rgba(0, 242, 254, 0.3);
+            
+            --accent-cyan: #00f2fe;
+            --accent-magenta: #ff007f;
+            --accent-blue: #4facfe;
+            --accent-gradient: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            --accent-magenta-gradient: linear-gradient(135deg, #ff007f 0%, #7928ca 100%);
+            
+            --text-primary: #f5f3f7;
+            --text-secondary: #a39eb9;
+            --text-muted: #625c7e;
+            
+            --shadow-neon: 0 0 20px rgba(0, 242, 254, 0.15);
+            --shadow-neon-magenta: 0 0 20px rgba(255, 0, 127, 0.15);
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent-cyan) var(--bg-color);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 242, 254, 0.3);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-cyan);
+        }
+
+        body {
+            background: var(--bg-color);
+            background-image: var(--bg-gradient);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        /* Glassmorphism utility */
+        .glass-panel {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+            width: 100%;
+        }
+
+        /* Views (Login vs Dashboard) */
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        /* Login Screen */
+        .login-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-box {
+            width: 100%;
+            max-width: 440px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-logo {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 10px rgba(0, 242, 254, 0.3));
+        }
+
+        .login-box h2 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            background: linear-gradient(to right, #ffffff, #d3cce3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .login-box p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 32px;
+        }
+
+        /* Header section */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--accent-gradient);
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo-icon {
+            font-size: 2.5rem;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 10px rgba(0, 242, 254, 0.3));
+        }
+
+        .logo-text h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: linear-gradient(to right, #ffffff, #d3cce3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-text p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .user-info i {
+            color: var(--accent-cyan);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Button styles */
+        .btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: var(--transition-smooth);
+            font-size: 0.9rem;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: var(--accent-gradient);
+            border: none;
+            color: #000;
+            box-shadow: var(--shadow-neon);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #00f2fe 30%, #4facfe 100%);
+            box-shadow: 0 0 30px rgba(0, 242, 254, 0.4);
+            color: #000;
+        }
+
+        .btn-danger {
+            background: rgba(255, 0, 127, 0.1);
+            border: 1px solid rgba(255, 0, 127, 0.3);
+            color: var(--accent-magenta);
+        }
+
+        .btn-danger:hover {
+            background: rgba(255, 0, 127, 0.2);
+            box-shadow: var(--shadow-neon-magenta);
+        }
+
+        /* Dashboard Overview Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        @media (max-width: 992px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Stat cards */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--accent-gradient);
+            opacity: 0.5;
+        }
+
+        .stat-card.magenta::after {
+            background: var(--accent-magenta-gradient);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+
+        .stat-icon {
+            font-size: 1.5rem;
+            opacity: 0.7;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 0%, #a39eb9 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-card.value-card .stat-value {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2rem;
+        }
+
+        .stat-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 8px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        /* Chart card */
+        .chart-card {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .chart-header {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chart-container {
+            position: relative;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+        }
+
+        /* Filter & Controls section */
+        .controls-panel {
+            padding: 20px;
+            margin-bottom: 32px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .search-box {
+            position: relative;
+            flex-grow: 1;
+            min-width: 250px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .search-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 12px 16px 12px 46px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            outline: none;
+            transition: var(--transition-smooth);
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.1);
+        }
+
+        .filter-options {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .select-input {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 12px 16px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            outline: none;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            min-width: 160px;
+        }
+
+        .select-input:focus {
+            border-color: var(--accent-cyan);
+        }
+
+        .select-input option {
+            background: #110e1c;
+            color: var(--text-primary);
+        }
+
+        /* Collection Grid */
+        .collection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        /* Item Card Design */
+        .item-card {
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+            min-height: 250px;
+        }
+
+        .item-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at top right, rgba(0, 242, 254, 0.03), transparent 60%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .item-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--card-border-hover);
+            box-shadow: var(--shadow-neon);
+            background: var(--card-bg-hover);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            z-index: 1;
+        }
+
+        .category-badge {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            background: rgba(0, 242, 254, 0.1);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0, 242, 254, 0.2);
+        }
+
+        .category-badge.gaming { background: rgba(255, 99, 132, 0.1); color: rgb(255, 99, 132); border-color: rgba(255, 99, 132, 0.2); }
+        .category-badge.vinyl { background: rgba(54, 162, 235, 0.1); color: rgb(54, 162, 235); border-color: rgba(54, 162, 235, 0.2); }
+        .category-badge.olahraga { background: rgba(255, 206, 86, 0.1); color: rgb(255, 206, 86); border-color: rgba(255, 206, 86, 0.2); }
+        .category-badge.figure { background: rgba(75, 192, 192, 0.1); color: rgb(75, 192, 192); border-color: rgba(75, 192, 192, 0.2); }
+        .category-badge.minuman { background: rgba(153, 102, 255, 0.1); color: rgb(153, 102, 255); border-color: rgba(153, 102, 255, 0.2); }
+
+        .card-year {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .card-body {
+            flex-grow: 1;
+            margin-bottom: 20px;
+            z-index: 1;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            line-height: 1.3;
+            color: var(--text-primary);
+        }
+
+        .card-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .card-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 0.8rem;
+        }
+
+        .meta-tag {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 4px 8px;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .meta-tag i {
+            margin-right: 4px;
+            color: var(--accent-blue);
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 16px;
+            margin-top: auto;
+            z-index: 1;
+        }
+
+        .card-value {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--accent-cyan);
+            text-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .btn-icon:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-icon.edit-btn:hover {
+            color: var(--accent-cyan);
+            border-color: rgba(0, 242, 254, 0.3);
+        }
+
+        .btn-icon.delete-btn:hover {
+            color: var(--accent-magenta);
+            border-color: rgba(255, 0, 127, 0.3);
+        }
+
+        /* Empty State */
+        .empty-state {
+            grid-column: 1 / -1;
+            padding: 80px 40px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            animation: pulse 2s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.6; }
+            100% { transform: scale(1.05); opacity: 0.9; }
+        }
+
+        .empty-state h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            max-width: 400px;
+        }
+
+        /* Modal styling */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(7, 5, 13, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: var(--transition-smooth);
+        }
+
+        .modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-content {
+            width: 90%;
+            max-width: 600px;
+            padding: 32px;
+            position: relative;
+            transform: scale(0.9);
+            transition: var(--transition-smooth);
+        }
+
+        .modal.active .modal-content {
+            transform: scale(1);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .close-modal:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 576px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 12px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            outline: none;
+            transition: var(--transition-smooth);
+        }
+
+        .form-control:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.15);
+        }
+
+        textarea.form-control {
+            height: 100px;
+            resize: none;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        /* Toast system */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: #15102a;
+            border-left: 4px solid var(--accent-cyan);
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-primary);
+            transform: translateX(120%);
+            transition: var(--transition-smooth);
+            max-width: 350px;
+        }
+
+        .toast.active {
+            transform: translateX(0);
+        }
+
+        .toast.success { border-left-color: var(--accent-cyan); }
+        .toast.error { border-left-color: var(--accent-magenta); }
+        .toast.info { border-left-color: var(--accent-blue); }
+
+        .toast-icon {
+            font-size: 1.2rem;
+        }
+        
+        .toast.success .toast-icon { color: var(--accent-cyan); }
+        .toast.error .toast-icon { color: var(--accent-magenta); }
+        .toast.info .toast-icon { color: var(--accent-blue); }
+    </style>
+</head>
+<body>
+
+    <!-- 1. VIEW: LOGIN -->
+    <div id="loginView" class="view-section active">
+        <div class="login-wrapper">
+            <div class="glass-panel login-box">
+                <i class="fa-solid fa-vault login-logo"></i>
+                <h2>Mancave Vault</h2>
+                <p>Masukkan kredensial Anda untuk membuka brankas koleksi</p>
+                
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label class="form-label">Username</label>
+                        <input type="text" id="loginUsername" class="form-control" placeholder="Masukkan username" required autofocus>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 30px;">
+                        <label class="form-label">Password</label>
+                        <input type="password" id="loginPassword" class="form-control" placeholder="Masukkan password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px;">
+                        <i class="fa-solid fa-key"></i> Masuk ke Brankas
+                    </button>
+                </form>
+                <div style="margin-top: 20px; font-size: 0.8rem; color: var(--text-muted);">
+                    Default User: <strong style="color: var(--text-secondary)">admin</strong> | Default Pass: <strong style="color: var(--text-secondary)">admin</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. VIEW: DASHBOARD -->
+    <div id="dashboardView" class="view-section">
+        <div class="container">
+            <!-- Header -->
+            <header class="glass-panel">
+                <div class="logo-area">
+                    <i class="fa-solid fa-database logo-icon"></i>
+                    <div class="logo-text">
+                        <h1>Mancave Vault</h1>
+                        <p>SQLite + Python Backend Collection Manager</p>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="user-info">
+                        <i class="fa-solid fa-user-shield"></i>
+                        <span>Halo, <span id="displayUsername">Admin</span></span>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="openAddModal()">
+                            <i class="fa-solid fa-plus"></i> Tambah Barang
+                        </button>
+                        <button class="btn" onclick="openChangePasswordModal()" title="Ganti Password">
+                            <i class="fa-solid fa-lock"></i> Sandi
+                        </button>
+                        <button class="btn" onclick="exportData()" title="Backup Database (JSON)">
+                            <i class="fa-solid fa-download"></i> Ekspor
+                        </button>
+                        <button class="btn btn-danger" onclick="handleLogout()" title="Keluar">
+                            <i class="fa-solid fa-right-from-bracket"></i> Keluar
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Statistics -->
+            <div class="dashboard-grid">
+                <div class="stats-container">
+                    <!-- Stat 1: Total Value -->
+                    <div class="glass-panel stat-card value-card">
+                        <div class="stat-header">
+                            <span>Total Nilai Koleksi</span>
+                            <i class="fa-solid fa-rupiah-sign stat-icon" style="color: var(--accent-cyan)"></i>
+                        </div>
+                        <div class="stat-value" id="total-value">Rp 0</div>
+                        <div class="stat-desc">Estimasi nilai pasar seluruh barang</div>
+                    </div>
+
+                    <!-- Stat 2: Total Items -->
+                    <div class="glass-panel stat-card">
+                        <div class="stat-header">
+                            <span>Jumlah Barang</span>
+                            <i class="fa-solid fa-box-open stat-icon" style="color: var(--accent-blue)"></i>
+                        </div>
+                        <div class="stat-value" id="total-items">0</div>
+                        <div class="stat-desc">Barang terdaftar di SQLite database</div>
+                    </div>
+
+                    <!-- Stat 3: Highest Value -->
+                    <div class="glass-panel stat-card magenta">
+                        <div class="stat-header">
+                            <span>Koleksi Termahal</span>
+                            <i class="fa-solid fa-crown stat-icon" style="color: var(--accent-magenta)"></i>
+                        </div>
+                        <div class="stat-value" id="top-item-val" style="font-size: 1.25rem; font-weight: 600; background: none; -webkit-text-fill-color: initial; color: var(--text-primary)">-</div>
+                        <div class="stat-desc" id="top-item-name" style="margin-top: 4px;">Item teratas berdasarkan nilai</div>
+                    </div>
+                </div>
+
+                <!-- Category Chart Card -->
+                <div class="glass-panel chart-card">
+                    <div class="chart-header">
+                        <i class="fa-solid fa-chart-pie" style="color: var(--accent-cyan)"></i>
+                        <span>Proporsi Kategori Koleksi</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls Section -->
+            <div class="glass-panel controls-panel">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="searchBar" class="search-input" placeholder="Cari koleksi berdasarkan nama atau catatan..." oninput="filterAndDisplayItems()">
+                </div>
+                
+                <div class="filter-options">
+                    <select id="categoryFilter" class="select-input" onchange="filterAndDisplayItems()">
+                        <option value="All">Semua Kategori</option>
+                        <!-- Populated dynamically -->
+                    </select>
+
+                    <select id="sortOption" class="select-input" onchange="filterAndDisplayItems()">
+                        <option value="newest">Baru Ditambahkan</option>
+                        <option value="value-desc">Nilai: Tertinggi ke Terendah</option>
+                        <option value="value-asc">Nilai: Terendah ke Tertinggi</option>
+                        <option value="year-desc">Tahun: Terbaru ke Terlama</option>
+                        <option value="year-asc">Tahun: Terlama ke Terbaru</option>
+                    </select>
+
+                    <button class="btn btn-danger" onclick="resetDatabaseOnServer()" title="Reset Database ke Bawaan">
+                        <i class="fa-solid fa-rotate-left"></i> Reset DB
+                    </button>
+                </div>
+            </div>
+
+            <!-- Collection Grid -->
+            <div class="collection-grid" id="collectionGrid">
+                <!-- Dynamically populated cards -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Form (Add & Edit) -->
+    <div class="modal" id="itemModal">
+        <div class="glass-panel modal-content">
+            <button class="close-modal" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="modal-title" id="modalTitle">Tambah Koleksi</h2>
+            
+            <form id="itemForm" onsubmit="saveItem(event)">
+                <input type="hidden" id="itemId">
+                
+                <div class="form-group">
+                    <label class="form-label">Nama Barang</label>
+                    <input type="text" id="itemName" class="form-control" placeholder="Contoh: Hot Toys Iron Man Mark LXXXV" required>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Kategori</label>
+                        <select id="itemCategory" class="form-control" required>
+                            <option value="Konsol Game Klasik">Konsol Game Klasik</option>
+                            <option value="Piringan Hitam">Piringan Hitam</option>
+                            <option value="Memorabilia Olahraga">Memorabilia Olahraga</option>
+                            <option value="Action Figure">Action Figure</option>
+                            <option value="Koleksi Minuman">Koleksi Minuman</option>
+                            <option value="Diecast Mobil">Diecast Mobil</option>
+                            <option value="Dekorasi / Lampu">Dekorasi / Lampu</option>
+                            <option value="Kamera Klasik">Kamera Klasik</option>
+                            <option value="Fasilitas Hiburan">Fasilitas Hiburan</option>
+                            <option value="Mainan / Koleksi">Mainan / Koleksi</option>
+                            <option value="Alat Musik">Alat Musik</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Tahun Rilis/Pembuatan</label>
+                        <input type="number" id="itemYear" class="form-control" placeholder="Contoh: 1998" min="1900" max="2100" required>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Kondisi</label>
+                        <input type="text" id="itemCondition" class="form-control" placeholder="Contoh: MIB, Baru, Sangat Baik" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Estimasi Nilai (IDR)</label>
+                        <input type="number" id="itemValue" class="form-control" placeholder="Contoh: 6500000" min="0" required>
+                    </div>
+                </div>
+
+                <div class="form-group full-width">
+                    <label class="form-label">Catatan / Keterangan</label>
+                    <textarea id="itemNotes" class="form-control" placeholder="Tulis rincian khusus, sertifikat, atau riwayat barang..." required></textarea>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn" onclick="closeModal()">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Form (Change Password) -->
+    <div class="modal" id="passwordModal">
+        <div class="glass-panel modal-content" style="max-width: 440px;">
+            <button class="close-modal" onclick="closePasswordModal()"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="modal-title">Ganti Password</h2>
+            
+            <form onsubmit="handleChangePassword(event)">
+                <div class="form-group">
+                    <label class="form-label">Password Lama</label>
+                    <input type="password" id="oldPassword" class="form-control" placeholder="Masukkan password lama" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password Baru</label>
+                    <input type="password" id="newPassword" class="form-control" placeholder="Masukkan password baru" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Konfirmasi Password Baru</label>
+                    <input type="password" id="confirmPassword" class="form-control" placeholder="Ulangi password baru" required>
+                </div>
+
+                <div class="modal-actions" style="margin-top: 24px;">
+                    <button type="button" class="btn" onclick="closePasswordModal()">Batal</button>
+                    <button type="submit" class="btn btn-primary">Update Sandi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        let database = [];
+        let categoryChart = null;
+
+        // On Page Load
+        window.addEventListener('DOMContentLoaded', () => {
+            checkSession();
+        });
+
+        // Check active session on storage
+        function checkSession() {
+            const token = sessionStorage.getItem('vault_token');
+            const username = sessionStorage.getItem('vault_username');
+            
+            if (token && username) {
+                showDashboard(username);
+            } else {
+                showLogin();
+            }
+        }
+
+        function showDashboard(username) {
+            document.getElementById('loginView').classList.remove('active');
+            document.getElementById('dashboardView').classList.add('active');
+            document.getElementById('displayUsername').innerText = username;
+            loadDatabaseFromServer();
+        }
+
+        function showLogin() {
+            document.getElementById('dashboardView').classList.remove('active');
+            document.getElementById('loginView').classList.add('active');
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('loginUsername').focus();
+        }
+
+        // Helper API Fetch with Authorization Header
+        async function apiFetch(url, options = {}) {
+            const token = sessionStorage.getItem('vault_token');
+            if (token) {
+                if (!options.headers) options.headers = {};
+                options.headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            const response = await fetch(url, options);
+            
+            if (response.status === 401) {
+                // Session expired or invalid
+                sessionStorage.clear();
+                showLogin();
+                showToast("Sesi telah berakhir. Silakan masuk kembali.", "error");
+                throw new Error("Unauthorized");
+            }
+            
+            return response;
+        }
+
+        // Login Handler
+        async function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    sessionStorage.setItem('vault_token', data.token);
+                    sessionStorage.setItem('vault_username', data.username);
+                    showToast(`Selamat datang kembali, ${data.username}!`, "success");
+                    showDashboard(data.username);
+                } else {
+                    showToast(data.error || "Gagal masuk ke sistem.", "error");
+                }
+            } catch (err) {
+                showToast("Gagal terhubung ke server backend.", "error");
+                console.error(err);
+            }
+        }
+
+        // Logout Handler
+        async function handleLogout() {
+            try {
+                await apiFetch('/api/logout', { method: 'POST' });
+            } catch (err) {
+                console.error("Gagal memberitahu server logout");
+            }
+            sessionStorage.clear();
+            showLogin();
+            showToast("Anda telah keluar dari brankas.", "info");
+        }
+
+        // Load Database from Python SQLite Server
+        async function loadDatabaseFromServer() {
+            try {
+                const response = await apiFetch('/api/items');
+                database = await response.json();
+                populateCategoryFilter();
+                updateDashboardStats();
+                initOrUpdateChart();
+                filterAndDisplayItems();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Helper to Format IDR
+        function formatIDR(num) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                maximumFractionDigits: 0
+            }).format(num);
+        }
+
+        // Update Dashboard Stats
+        function updateDashboardStats() {
+            const totalVal = database.reduce((acc, item) => acc + parseInt(item.value || 0), 0);
+            document.getElementById('total-value').innerText = formatIDR(totalVal);
+            document.getElementById('total-items').innerText = database.length;
+
+            if (database.length > 0) {
+                const maxValItem = database.reduce((prev, current) => (prev.value > current.value) ? prev : current);
+                document.getElementById('top-item-name').innerText = maxValItem.name;
+                document.getElementById('top-item-val').innerText = formatIDR(maxValItem.value);
+            } else {
+                document.getElementById('top-item-name').innerText = "Tidak ada barang";
+                document.getElementById('top-item-val').innerText = "-";
+            }
+        }
+
+        // Category class matching for badges
+        function getCategoryClass(cat) {
+            const lower = cat.toLowerCase();
+            if (lower.includes('game') || lower.includes('konsol')) return 'gaming';
+            if (lower.includes('piringan') || lower.includes('vinyl')) return 'vinyl';
+            if (lower.includes('olahraga') || lower.includes('jersey')) return 'olahraga';
+            if (lower.includes('figure') || lower.includes('statue')) return 'figure';
+            if (lower.includes('minuman') || lower.includes('whiskey')) return 'minuman';
+            return '';
+        }
+
+        // Populating Category Filter options
+        function populateCategoryFilter() {
+            const filterSelect = document.getElementById('categoryFilter');
+            const selectOptions = filterSelect.options;
+            
+            // Clear current options except "All"
+            while (selectOptions.length > 1) {
+                filterSelect.remove(1);
+            }
+
+            // Get unique categories from current dataset
+            const categories = [...new Set(database.map(item => item.category))];
+            
+            categories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.text = cat;
+                filterSelect.add(option);
+            });
+        }
+
+        // Filter, Sort, and Display Items
+        function filterAndDisplayItems() {
+            const searchQuery = document.getElementById('searchBar').value.toLowerCase();
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const sortOption = document.getElementById('sortOption').value;
+            const grid = document.getElementById('collectionGrid');
+
+            let filtered = database.filter(item => {
+                const matchesSearch = item.name.toLowerCase().includes(searchQuery) || 
+                                      (item.notes && item.notes.toLowerCase().includes(searchQuery)) ||
+                                      item.condition.toLowerCase().includes(searchQuery);
+                const matchesCategory = categoryFilter === 'All' || item.category === categoryFilter;
+                return matchesSearch && matchesCategory;
+            });
+
+            // Sorting
+            if (sortOption === 'newest') {
+                filtered.sort((a, b) => b.id - a.id);
+            } else if (sortOption === 'value-desc') {
+                filtered.sort((a, b) => b.value - a.value);
+            } else if (sortOption === 'value-asc') {
+                filtered.sort((a, b) => a.value - b.value);
+            } else if (sortOption === 'year-desc') {
+                filtered.sort((a, b) => b.year - a.year);
+            } else if (sortOption === 'year-asc') {
+                filtered.sort((a, b) => a.year - b.year);
+            }
+
+            // Render
+            grid.innerHTML = '';
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state glass-panel">
+                        <i class="fa-solid fa-magnifying-glass-minus empty-icon"></i>
+                        <h3>Koleksi Tidak Ditemukan</h3>
+                        <p>Cobalah mengganti kata kunci pencarian atau mengubah filter kategori Anda.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'glass-panel item-card';
+                card.innerHTML = `
+                    <div>
+                        <div class="card-header">
+                            <span class="category-badge ${getCategoryClass(item.category)}">${item.category}</span>
+                            <span class="card-year">${item.year}</span>
+                        </div>
+                        <div class="card-body">
+                            <h3 class="card-title">${item.name}</h3>
+                            <p class="card-desc">${item.notes || ''}</p>
+                            <div class="card-meta">
+                                <span class="meta-tag"><i class="fa-solid fa-shield-halved"></i>Kondisi: ${item.condition}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="card-value">${formatIDR(item.value)}</div>
+                        <div class="card-actions">
+                            <button class="btn-icon edit-btn" onclick="openEditModal(${item.id})" title="Edit Barang"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button class="btn-icon delete-btn" onclick="deleteItem(${item.id})" title="Hapus Barang"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Item Modals Management
+        function openAddModal() {
+            document.getElementById('itemForm').reset();
+            document.getElementById('itemId').value = '';
+            document.getElementById('modalTitle').innerText = 'Tambah Koleksi Baru';
+            document.getElementById('itemModal').classList.add('active');
+        }
+
+        function openEditModal(id) {
+            const item = database.find(i => i.id === id);
+            if (!item) return;
+
+            document.getElementById('itemId').value = item.id;
+            document.getElementById('itemName').value = item.name;
+            document.getElementById('itemCategory').value = item.category;
+            document.getElementById('itemYear').value = item.year;
+            document.getElementById('itemCondition').value = item.condition;
+            document.getElementById('itemValue').value = item.value;
+            document.getElementById('itemNotes').value = item.notes || '';
+
+            document.getElementById('modalTitle').innerText = 'Edit Detail Koleksi';
+            document.getElementById('itemModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('itemModal').classList.remove('active');
+        }
+
+        // Add/Edit Save Handler (Call Backend API)
+        async function saveItem(e) {
+            e.preventDefault();
+            const id = document.getElementById('itemId').value;
+            const name = document.getElementById('itemName').value;
+            const category = document.getElementById('itemCategory').value;
+            const year = parseInt(document.getElementById('itemYear').value);
+            const condition = document.getElementById('itemCondition').value;
+            const value = parseInt(document.getElementById('itemValue').value);
+            const notes = document.getElementById('itemNotes').value;
+
+            const payload = { name, category, year, condition, value, notes };
+
+            try {
+                if (id) {
+                    // Edit (PUT)
+                    const response = await apiFetch(`/api/items/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const updated = await response.json();
+                    
+                    const index = database.findIndex(i => i.id == id);
+                    if (index !== -1) {
+                        database[index] = updated;
+                        showToast(`Koleksi "${name}" berhasil diperbarui!`, "success");
+                    }
+                } else {
+                    // Add (POST)
+                    const response = await apiFetch('/api/items', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const saved = await response.json();
+                    database.unshift(saved); // Add to beginning
+                    showToast(`Koleksi "${name}" berhasil ditambahkan!`, "success");
+                }
+                
+                populateCategoryFilter();
+                updateDashboardStats();
+                initOrUpdateChart();
+                closeModal();
+                filterAndDisplayItems();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Delete Item (Call Backend API)
+        async function deleteItem(id) {
+            const item = database.find(i => i.id === id);
+            if (!item) return;
+
+            if (confirm(`Apakah Anda yakin ingin menghapus "${item.name}" dari lemari koleksi SQLite?`)) {
+                try {
+                    const response = await apiFetch(`/api/items/${id}`, {
+                        method: 'DELETE'
+                    });
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        database = database.filter(i => i.id !== id);
+                        populateCategoryFilter();
+                        updateDashboardStats();
+                        initOrUpdateChart();
+                        filterAndDisplayItems();
+                        showToast(`Koleksi "${item.name}" dihapus.`, "error");
+                    }
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+        }
+
+        // Reset DB (Call Backend Reset API)
+        async function resetDatabaseOnServer() {
+            if (confirm("Apakah Anda yakin ingin menyetel ulang database SQLite ke data default awal? Semua data baru Anda akan terhapus dari server.")) {
+                try {
+                    const response = await apiFetch('/api/reset', { method: 'POST' });
+                    database = await response.json();
+                    
+                    populateCategoryFilter();
+                    updateDashboardStats();
+                    initOrUpdateChart();
+                    filterAndDisplayItems();
+                    showToast("Database SQLite berhasil disetel ulang.", "info");
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+        }
+
+        // Password Modal Management
+        function openChangePasswordModal() {
+            document.getElementById('oldPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+            document.getElementById('passwordModal').classList.add('active');
+        }
+
+        function closePasswordModal() {
+            document.getElementById('passwordModal').classList.remove('active');
+        }
+
+        async function handleChangePassword(e) {
+            e.preventDefault();
+            const old_password = document.getElementById('oldPassword').value;
+            const new_password = document.getElementById('newPassword').value;
+            const confirm_password = document.getElementById('confirmPassword').value;
+
+            if (new_password !== confirm_password) {
+                showToast("Konfirmasi password baru tidak cocok.", "error");
+                return;
+            }
+
+            try {
+                const response = await apiFetch('/api/change-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ old_password, new_password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showToast("Password Anda berhasil diganti!", "success");
+                    closePasswordModal();
+                } else {
+                    showToast(data.error || "Gagal mengganti password.", "error");
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Toast System
+        function showToast(message, type = "success") {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            let iconClass = 'fa-circle-check';
+            if (type === 'error') iconClass = 'fa-circle-exclamation';
+            if (type === 'info') iconClass = 'fa-circle-info';
+
+            toast.innerHTML = `
+                <i class="fa-solid ${iconClass} toast-icon"></i>
+                <div>${message}</div>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Trigger animation
+            setTimeout(() => toast.classList.add('active'), 10);
+            
+            // Auto remove
+            setTimeout(() => {
+                toast.classList.remove('active');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        // Export Database (JSON download)
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(database, null, 4));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "mancave_sqlite_backup.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast("Database berhasil diekspor!", "success");
+        }
+
+        // Chart.js Category Chart Initialization / Update
+        function initOrUpdateChart() {
+            const data = getChartPreparedData();
+            
+            if (categoryChart) {
+                categoryChart.data.labels = data.labels;
+                categoryChart.data.datasets[0].data = data.values;
+                categoryChart.update();
+            } else {
+                const ctx = document.getElementById('categoryChart').getContext('2d');
+                categoryChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            data: data.values,
+                            backgroundColor: [
+                                'rgb(255, 99, 132)',
+                                'rgb(54, 162, 235)',
+                                'rgb(255, 206, 86)',
+                                'rgb(75, 192, 192)',
+                                'rgb(153, 102, 255)',
+                                'rgb(255, 159, 64)',
+                                'rgba(0, 242, 254, 0.8)',
+                                'rgba(255, 0, 127, 0.8)',
+                                '#e0e0e0',
+                                '#8bc34a',
+                                '#ff5722'
+                            ],
+                            borderWidth: 1,
+                            borderColor: '#110e1c'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: {
+                                    color: '#a39eb9',
+                                    font: {
+                                        family: 'Outfit',
+                                        size: 11
+                                    },
+                                    boxWidth: 12
+                                }
+                            }
+                        },
+                        cutout: '60%'
+                    }
+                });
+            }
+        }
+
+        // Prepare chart data helper
+        function getChartPreparedData() {
+            const counts = {};
+            database.forEach(item => {
+                counts[item.category] = (counts[item.category] || 0) + 1;
+            });
+            return {
+                labels: Object.keys(counts),
+                values: Object.values(counts)
+            };
+        }
+    </script>
+</body>
+</html>
